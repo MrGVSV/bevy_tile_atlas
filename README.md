@@ -1,5 +1,7 @@
 # bevy_tile_atlas
 
+[![Crates.io](https://img.shields.io/crates/v/bevy_tile_atlas)](https://crates.io/crates/bevy_tile_atlas)[![Docs](https://img.shields.io/docsrs/bevy_tile_atlas)](https://docs.rs/bevy_tile_atlas/)[![License](https://img.shields.io/crates/l/bevy_tile_atlas)](./License.md)
+
 *A `TextureAtlas` builder for ordered tilesets*
 
 ## Purpose
