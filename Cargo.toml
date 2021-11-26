@@ -1,0 +1,23 @@
+[package]
+name = "bevy_tile_atlas"
+version = "0.1.0"
+edition = "2018"
+authors = ["Gino Valente <gino.valente.code@gmail.com>"]
+description = "A TextureAtlas builder for ordered tilesets"
+repository = "https://github.com/MrGVSV/bevy_tile_atlas"
+license = "MIT OR Apache-2.0"
+keywords = ["bevy", "tile", "tileset", "texture", "ordered"]
+readme = "README.md"
+exclude = ["assets/**/*", ".github/**/*"]
+
+[badges]
+maintenance = { status = "as-is" }
+
+
+[dependencies]
+bevy = "0.5"
+thiserror = "1.0.30"
+
+[[example]]
+name = "atlas"
+path = "examples/atlas.rs"
