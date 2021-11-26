@@ -25,7 +25,7 @@ pub struct TileAtlasBuilder {
 	/// The maximum number of columns to allow before wrapping
 	///
 	/// If `None`, then no wrapping (i.e. single row)
-	columns: Option<usize>,
+	max_columns: Option<usize>,
 	/// The ordered collection of texture handles in this atlas
 	handles: Vec<Handle<Texture>>,
 	/// The texture format for the textures that will be loaded in the atlas.
@@ -38,7 +38,7 @@ impl Default for TileAtlasBuilder {
 	fn default() -> Self {
 		Self {
 			tile_size: None,
-			columns: None,
+			max_columns: None,
 			handles: Vec::default(),
 			format: TextureFormat::Rgba8UnormSrgb,
 			auto_format_conversion: true,
@@ -101,8 +101,8 @@ impl TileAtlasBuilder {
 	/// Sets the maximum number of columns to allow before wrapping
 	///
 	/// If `None`, then no wrapping (i.e. single row)
-	pub fn columns(mut self, columns: Option<usize>) -> Self {
-		self.columns = columns;
+	pub fn max_columns(mut self, max_columns: Option<usize>) -> Self {
+		self.max_columns = max_columns;
 		self
 	}
 
@@ -123,16 +123,16 @@ impl TileAtlasBuilder {
 		self.tile_size
 	}
 
-	/// Gets the current number of added textures
-	pub fn len(&self) -> usize {
-		self.handles.len()
-	}
-
 	/// Gets the current maximum number of columns
 	///
 	/// If the columns property was not set, this will equal the number of added textures
-	pub fn max_columns(&self) -> usize {
-		self.columns.unwrap_or(self.handles.len())
+	pub fn get_max_columns(&self) -> usize {
+		self.max_columns.unwrap_or(self.handles.len())
+	}
+
+	/// Gets the current number of added textures
+	pub fn len(&self) -> usize {
+		self.handles.len()
 	}
 
 	/// Adds a texture to be copied to the texture atlas.
@@ -185,11 +185,11 @@ impl TileAtlasBuilder {
 
 		let tile_size = &self.tile_size.unwrap();
 
-		let total_rows = ((total as f32) / self.max_columns() as f32).ceil() as usize;
+		let total_rows = ((total as f32) / self.get_max_columns() as f32).ceil() as usize;
 
 		let mut atlas_texture = Texture::new_fill(
 			Extent3d::new(
-				(self.max_columns() as f32 * tile_size.x) as u32,
+				(self.get_max_columns() as f32 * tile_size.x) as u32,
 				((total_rows as f32) * tile_size.y) as u32,
 				1,
 			),
@@ -222,7 +222,7 @@ impl TileAtlasBuilder {
 			}
 			self.copy_converted_texture(&mut atlas_texture, texture, row_idx, col_idx);
 
-			if (index + 1usize).wrapping_rem(self.max_columns()) == 0usize {
+			if (index + 1usize).wrapping_rem(self.get_max_columns()) == 0usize {
 				col_idx += 1usize;
 				row_idx = 0usize;
 			} else {
