@@ -1,5 +1,6 @@
+use crate::TextureStore;
 use bevy::log::{debug, error, warn};
-use bevy::prelude::{Assets, Handle, Texture, TextureAtlas, Vec2};
+use bevy::prelude::{Handle, Texture, TextureAtlas, Vec2};
 use bevy::render::texture::{Extent3d, TextureDimension, TextureFormat};
 use bevy::sprite::{Rect, TextureAtlasBuilderError};
 use std::collections::HashMap;
@@ -101,7 +102,7 @@ impl TileAtlasBuilder {
 	/// Sets the maximum number of columns to allow before wrapping
 	///
 	/// If `None`, then no wrapping (i.e. single row)
-	pub fn max_columns(mut self, max_columns: Option<usize>) -> Self {
+	pub fn max_columns(&mut self, max_columns: Option<usize>) -> &mut Self {
 		self.max_columns = max_columns;
 		self
 	}
@@ -174,9 +175,9 @@ impl TileAtlasBuilder {
 	}
 
 	/// Build the final `TextureAtlas`
-	pub fn finish(
+	pub fn finish<TStore: TextureStore>(
 		self,
-		textures: &mut Assets<Texture>,
+		textures: &mut TStore,
 	) -> Result<TextureAtlas, TileAtlasBuilderError> {
 		let total = self.handles.len();
 		if total == 0usize {
