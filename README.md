@@ -28,7 +28,7 @@ This crate is essentially an augmentation of Bevy's own  `TextureAtlasBuilder`. 
 Add to your `[dependencies]` list in `Cargo.toml`:
 
 ```toml
-bevy_tile_atlas = "0.1.3"
+bevy_tile_atlas = "0.1.4"
 ```
 
 ## Usage
