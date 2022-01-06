@@ -199,14 +199,14 @@ impl TileAtlasBuilder {
 			self.format,
 		);
 
-		let mut col_idx = 0usize;
 		let mut row_idx = 0usize;
+		let mut col_idx = 0usize;
 		let mut texture_handles = HashMap::default();
 		let mut texture_rects = Vec::with_capacity(total);
 		for (index, handle) in self.handles.iter().enumerate() {
 			let texture = textures.get(handle).unwrap();
-			let x = (row_idx as f32) * tile_size.x;
-			let y = (col_idx as f32) * tile_size.y;
+			let x = (col_idx as f32) * tile_size.x;
+			let y = (row_idx as f32) * tile_size.y;
 			let min = Vec2::new(x, y);
 			let max = min + Vec2::new(tile_size.x, tile_size.y);
 
@@ -221,13 +221,13 @@ impl TileAtlasBuilder {
 					TextureAtlasBuilderError::WrongFormat,
 				));
 			}
-			self.copy_converted_texture(&mut atlas_texture, texture, row_idx, col_idx);
+			self.copy_converted_texture(&mut atlas_texture, texture, col_idx, row_idx);
 
 			if (index + 1usize).wrapping_rem(self.get_max_columns()) == 0usize {
-				col_idx += 1usize;
-				row_idx = 0usize;
-			} else {
 				row_idx += 1usize;
+				col_idx = 0usize;
+			} else {
+				col_idx += 1usize;
 			}
 		}
 
@@ -243,17 +243,17 @@ impl TileAtlasBuilder {
 		&self,
 		atlas_texture: &mut Texture,
 		texture: &Texture,
-		row_index: usize,
 		column_index: usize,
+		row_index: usize,
 	) {
 		if self.format == texture.format {
-			self.copy_texture_to_atlas(atlas_texture, texture, row_index, column_index);
+			self.copy_texture_to_atlas(atlas_texture, texture, column_index, row_index);
 		} else if let Some(converted_texture) = texture.convert(self.format) {
 			debug!(
 				"Converting texture from '{:?}' to '{:?}'",
 				texture.format, self.format
 			);
-			self.copy_texture_to_atlas(atlas_texture, &converted_texture, row_index, column_index);
+			self.copy_texture_to_atlas(atlas_texture, &converted_texture, column_index, row_index);
 		} else {
 			error!(
 				"Error converting texture from '{:?}' to '{:?}', ignoring",
@@ -266,16 +266,16 @@ impl TileAtlasBuilder {
 		&self,
 		atlas_texture: &mut Texture,
 		texture: &Texture,
-		row_index: usize,
 		column_index: usize,
+		row_index: usize,
 	) {
 		let tile_size = self
 			.tile_size
 			.expect("Tile size should have been specified by this point.");
 		let rect_width = tile_size.x as usize;
 		let rect_height = tile_size.y as usize;
-		let rect_x = row_index * tile_size.x as usize;
-		let rect_y = column_index * tile_size.y as usize;
+		let rect_x = column_index * tile_size.x as usize;
+		let rect_y = row_index * tile_size.y as usize;
 		let atlas_width = atlas_texture.size.width as usize;
 		let format_size = atlas_texture.format.pixel_size();
 
