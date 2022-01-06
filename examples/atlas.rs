@@ -98,17 +98,33 @@ fn create_atlas(
 }
 
 fn display_atlas(
-	atlas: Res<MyAtlas>,
+	mut atlas_res: ResMut<MyAtlas>,
 	mut commands: Commands,
 	mut materials: ResMut<Assets<ColorMaterial>>,
+	mut atlases: ResMut<Assets<TextureAtlas>>,
 ) {
 	commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-	let atlas = atlas.0.as_ref().unwrap();
+	let atlas = atlas_res.0.take().unwrap();
 	let handle = atlas.texture.clone();
+	let atlas_handle = atlases.add(atlas);
 
+	// Display the third tile (Wall)
+	commands.spawn_bundle(SpriteSheetBundle {
+		transform: Transform {
+			translation: Vec3::new(0.0, 48.0, 0.0),
+			..Default::default()
+		},
+		sprite: TextureAtlasSprite::new(2),
+		texture_atlas: atlas_handle,
+		..Default::default()
+	});
+
+	// Display the whole tileset
 	commands.spawn_bundle(SpriteBundle {
 		material: materials.add(handle.into()),
 		..Default::default()
 	});
+
+	atlas_res.0 = None;
 }

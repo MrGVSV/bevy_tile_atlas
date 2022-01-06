@@ -208,7 +208,7 @@ impl TileAtlasBuilder {
 			let x = (row_idx as f32) * tile_size.x;
 			let y = (col_idx as f32) * tile_size.y;
 			let min = Vec2::new(x, y);
-			let max = min + Vec2::new(x + tile_size.x, y + tile_size.y);
+			let max = min + Vec2::new(tile_size.x, tile_size.y);
 
 			texture_handles.insert(handle.clone_weak(), index);
 			texture_rects.push(Rect { min, max });
