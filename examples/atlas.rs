@@ -15,18 +15,14 @@ use bevy::prelude::*;
 use bevy_tile_atlas::TileAtlasBuilder;
 
 fn main() {
-	App::build()
+	App::new()
 		.add_plugins(DefaultPlugins)
 		.init_resource::<TileHandles>()
 		.init_resource::<MyAtlas>()
 		.add_state(AppState::LoadTileset)
-		.add_system_set(SystemSet::on_enter(AppState::LoadTileset).with_system(load_tiles.system()))
-		.add_system_set(
-			SystemSet::on_update(AppState::CreateTileset).with_system(create_atlas.system()),
-		)
-		.add_system_set(
-			SystemSet::on_enter(AppState::DisplayTileset).with_system(display_atlas.system()),
-		)
+		.add_system_set(SystemSet::on_enter(AppState::LoadTileset).with_system(load_tiles))
+		.add_system_set(SystemSet::on_update(AppState::CreateTileset).with_system(create_atlas))
+		.add_system_set(SystemSet::on_enter(AppState::DisplayTileset).with_system(display_atlas))
 		.run();
 }
 
@@ -63,7 +59,7 @@ fn load_tiles(
 
 fn create_atlas(
 	mut atlas: ResMut<MyAtlas>,
-	mut textures: ResMut<Assets<Texture>>,
+	mut textures: ResMut<Assets<Image>>,
 	mut state: ResMut<State<AppState>>,
 	handles: Res<TileHandles>,
 	asset_server: Res<AssetServer>,
@@ -79,7 +75,7 @@ fn create_atlas(
 
 	for handle in &handles.0 {
 		if let Some(texture) = textures.get(handle) {
-			if let Ok(index) = builder.add_texture(handle.clone().typed::<Texture>(), texture) {
+			if let Ok(index) = builder.add_texture(handle.clone().typed::<Image>(), texture) {
 				println!("Added texture at index: {}", index);
 			}
 		}
@@ -100,7 +96,6 @@ fn create_atlas(
 fn display_atlas(
 	mut atlas_res: ResMut<MyAtlas>,
 	mut commands: Commands,
-	mut materials: ResMut<Assets<ColorMaterial>>,
 	mut atlases: ResMut<Assets<TextureAtlas>>,
 ) {
 	commands.spawn_bundle(OrthographicCameraBundle::new_2d());
@@ -122,7 +117,7 @@ fn display_atlas(
 
 	// Display the whole tileset
 	commands.spawn_bundle(SpriteBundle {
-		material: materials.add(handle.into()),
+		texture: handle,
 		..Default::default()
 	});
 

@@ -1,29 +1,29 @@
-use bevy::asset::{Assets, Handle, HandleId};
-use bevy::ecs::component::Component;
-use bevy::prelude::{ResMut, Texture};
+use bevy_asset::{Assets, Handle, HandleId};
+use bevy_ecs::system::{ResMut, Resource};
+use bevy_render::texture::Image;
 use std::ops::{Deref, DerefMut};
 
 pub trait TextureStore {
-	fn add(&mut self, asset: Texture) -> Handle<Texture>;
-	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Texture>;
+	fn add(&mut self, asset: Image) -> Handle<Image>;
+	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Image>;
 }
 
-impl TextureStore for Assets<Texture> {
-	fn add(&mut self, asset: Texture) -> Handle<Texture> {
+impl TextureStore for Assets<Image> {
+	fn add(&mut self, asset: Image) -> Handle<Image> {
 		self.add(asset)
 	}
 
-	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Texture> {
+	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Image> {
 		self.get(handle)
 	}
 }
 
-impl<'w, T: TextureStore + Component> TextureStore for ResMut<'w, T> {
-	fn add(&mut self, asset: Texture) -> Handle<Texture> {
+impl<'w, T: TextureStore + Resource> TextureStore for ResMut<'w, T> {
+	fn add(&mut self, asset: Image) -> Handle<Image> {
 		self.deref_mut().add(asset)
 	}
 
-	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Texture> {
+	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Image> {
 		self.deref().get(handle)
 	}
 }
