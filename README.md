@@ -28,7 +28,7 @@ This crate is essentially an augmentation of Bevy's own  `TextureAtlasBuilder`. 
 Add to your `[dependencies]` list in `Cargo.toml`:
 
 ```toml
-bevy_tile_atlas = "0.1.4"
+bevy_tile_atlas = "0.2.0"
 ```
 
 ## Usage
@@ -40,7 +40,7 @@ use bevy_tile_atlas::TileAtlasBuilder;
 /// Creates a tile-based, ordered `TextureAtlas`
 ///
 /// Assumes that the given handles are all loaded and in their desired order
-fn build_tileset(handles: Vec<Handle<Texture>>, textures: &mut Assets<Texture>) -> TextureAtlas {
+fn build_tileset(handles: Vec<Handle<Image>>, textures: &mut Assets<Image>) -> TextureAtlas {
   let mut builder = TileAtlasBuilder::default();
   
   for handle in handles {
@@ -54,6 +54,13 @@ fn build_tileset(handles: Vec<Handle<Texture>>, textures: &mut Assets<Texture>) 
 
 > **Note:** Duplicate textures can be added. This is helpful for when tiles need to be at multiple indices at once.
 
+## Bevy Compatibility
+
+| bevy | bevy_tile_atlas |
+| ---- | --------------- |
+| 0.6  | 0.2.0           |
+| 0.5  | 0.1.4           |
+
 ## FAQ
 
 **If this was made for `bevy_ecs_tilemap`, why did you not submit it as a PR?**
@@ -66,4 +73,4 @@ I didn't have to enforce the tile restriction, but I didn't see this being used 
 
 **Is the order guaranteed for whole folders of textures?**
 
-If you load from a whole folder, the order of insertion will depend on how Bevy chooses to load the files (which I think can vary, though I'm not sure). Therefore, it's recommended to either manually place the tile handles into a `Vec` or array, or use some other mechanism to automatically order them (i.e. a config file).
+If you load from a whole folder, the order of insertion will depend on how Bevy chooses to load the files (which I think can vary, though I'm not sure). Therefore, it's recommended to either manually place the tile handles into a `Vec` or array, or use some other mechanism to automatically order them (i.e. a [config file).](https://github.com/MrGVSV/bevy_tileset)
