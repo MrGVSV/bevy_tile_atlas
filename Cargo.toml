@@ -24,7 +24,7 @@ bevy = "0.6"
 
 [features]
 default = ["debug"]
-debug = []
+debug = ["bevy_log"]
 
 [[example]]
 name = "atlas"
