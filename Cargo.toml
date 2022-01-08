@@ -24,6 +24,7 @@ bevy = "0.6"
 
 [features]
 default = ["debug"]
+# Enables logging (specifically for warnings, errors, or automatic texture format conversions)
 debug = ["bevy_log"]
 
 [[example]]
