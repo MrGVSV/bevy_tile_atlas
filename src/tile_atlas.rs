@@ -1,3 +1,5 @@
+//! Contains the atlas builder and its associated structs
+
 use crate::TextureStore;
 use bevy_asset::Handle;
 use bevy_math::Vec2;

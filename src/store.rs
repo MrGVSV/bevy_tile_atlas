@@ -1,10 +1,19 @@
+//! Defines the `TextureStore` trait which is used by `TileAtlasBuilder` to manage its textures
+
 use bevy_asset::{Assets, Handle, HandleId};
 use bevy_ecs::system::{ResMut, Resource};
 use bevy_render::texture::Image;
 use std::ops::{Deref, DerefMut};
 
+/// Trait used in the [`TileAtlasBuilder::finish`](crate::TileAtlasBuilder::finish) method to get and
+/// add textures.
+///
+/// The reason for such a trait and not simply using `Assets<Image>` is to allow the builder to be used
+/// in places where `Assets<Image>` might not be available (such as within a custom `AssetLoader`).
 pub trait TextureStore {
+	/// Add a texture to the store
 	fn add(&mut self, asset: Image) -> Handle<Image>;
+	/// Get a texture from the store
 	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Image>;
 }
 
