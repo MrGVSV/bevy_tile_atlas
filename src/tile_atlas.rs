@@ -6,7 +6,7 @@ use bevy_math::Vec2;
 use bevy_render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy_render::texture::{Image, TextureFormatPixelInfo};
 use bevy_sprite::{Rect, TextureAtlas, TextureAtlasBuilderError};
-use std::collections::HashMap;
+use bevy_utils::HashMap;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -62,6 +62,8 @@ impl TileAtlasBuilder {
 	/// # Examples
 	///
 	/// ```
+	/// use bevy::prelude::*;
+	/// use bevy_tile_atlas::TileAtlasBuilder;
 	/// let mut builder = TileAtlasBuilder::new(Vec2::new(32.0, 32.0));
 	/// ```
 	pub fn new(tile_size: Vec2) -> Self {
@@ -86,8 +88,10 @@ impl TileAtlasBuilder {
 	/// # Examples
 	///
 	/// ```
+	/// use bevy::prelude::*;
+	/// use bevy_tile_atlas::TileAtlasBuilder;
 	/// // Auto-size
-	///	let mut builder = TileAtlasBuilder::default();
+	/// let mut builder = TileAtlasBuilder::default();
 	/// // Fixed-size
 	/// let mut builder = builder.tile_size(Some(Vec2::new(32.0, 32.0)));
 	/// // Back to auto-size
