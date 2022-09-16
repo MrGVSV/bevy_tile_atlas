@@ -20,7 +20,7 @@ fn main() {
 		.init_resource::<TileHandles>()
 		.init_resource::<MyAtlas>()
 		.add_state(AppState::LoadTileset)
-		.add_system_set(SystemSet::on_enter(AppState::LoadTileset).with_system(load_tiles))
+		.add_system_set(SystemSet::on_update(AppState::LoadTileset).with_system(load_tiles))
 		.add_system_set(SystemSet::on_update(AppState::CreateTileset).with_system(create_atlas))
 		.add_system_set(SystemSet::on_enter(AppState::DisplayTileset).with_system(display_atlas))
 		.run();
@@ -74,7 +74,7 @@ fn create_atlas(
 	let mut is_first = true;
 
 	for handle in &handles.0 {
-		if let Some(texture) = textures.get(handle) {
+		if let Some(texture) = textures.get(&handle.typed_weak()) {
 			if let Ok(index) = builder.add_texture(handle.clone().typed::<Image>(), texture) {
 				println!("Added texture at index: {}", index);
 			}
@@ -98,7 +98,7 @@ fn display_atlas(
 	mut commands: Commands,
 	mut atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-	commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+	commands.spawn_bundle(Camera2dBundle::default());
 
 	let atlas = atlas_res.0.take().unwrap();
 	let handle = atlas.texture.clone();

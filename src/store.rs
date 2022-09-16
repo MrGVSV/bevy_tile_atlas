@@ -23,7 +23,7 @@ impl TextureStore for Assets<Image> {
 	}
 
 	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Image> {
-		self.get(handle)
+		self.get(&Handle::weak(handle.into()))
 	}
 }
 
