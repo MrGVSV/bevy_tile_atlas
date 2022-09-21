@@ -54,7 +54,7 @@ fn load_tiles(
 		asset_server.load_untyped("tiles/grass.png"),
 	];
 	handles.0 = tiles;
-	state.set(AppState::CreateTileset).unwrap();
+	state.overwrite_set(AppState::CreateTileset).unwrap();
 }
 
 fn create_atlas(
@@ -74,7 +74,7 @@ fn create_atlas(
 	let mut is_first = true;
 
 	for handle in &handles.0 {
-		if let Some(texture) = textures.get(handle) {
+		if let Some(texture) = textures.get(&handle.typed_weak()) {
 			if let Ok(index) = builder.add_texture(handle.clone().typed::<Image>(), texture) {
 				println!("Added texture at index: {}", index);
 			}
@@ -98,7 +98,7 @@ fn display_atlas(
 	mut commands: Commands,
 	mut atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-	commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+	commands.spawn_bundle(Camera2dBundle::default());
 
 	let atlas = atlas_res.0.take().unwrap();
 	let handle = atlas.texture.clone();
