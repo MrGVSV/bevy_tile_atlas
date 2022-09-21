@@ -20,7 +20,7 @@ fn main() {
 		.init_resource::<TileHandles>()
 		.init_resource::<MyAtlas>()
 		.add_state(AppState::LoadTileset)
-		.add_system_set(SystemSet::on_update(AppState::LoadTileset).with_system(load_tiles))
+		.add_system_set(SystemSet::on_enter(AppState::LoadTileset).with_system(load_tiles))
 		.add_system_set(SystemSet::on_update(AppState::CreateTileset).with_system(create_atlas))
 		.add_system_set(SystemSet::on_enter(AppState::DisplayTileset).with_system(display_atlas))
 		.run();
@@ -54,7 +54,7 @@ fn load_tiles(
 		asset_server.load_untyped("tiles/grass.png"),
 	];
 	handles.0 = tiles;
-	state.set(AppState::CreateTileset).unwrap();
+	state.overwrite_set(AppState::CreateTileset).unwrap();
 }
 
 fn create_atlas(
