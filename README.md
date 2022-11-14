@@ -28,7 +28,7 @@ This crate is essentially an augmentation of Bevy's own  `TextureAtlasBuilder`. 
 Add to your `[dependencies]` list in `Cargo.toml`:
 
 ```toml
-bevy_tile_atlas = "0.4.0"
+bevy_tile_atlas = "0.5.0"
 ```
 
 ## Usage
@@ -58,6 +58,7 @@ fn build_tileset(handles: Vec<Handle<Image>>, textures: &mut Assets<Image>) -> T
 
 | bevy | bevy_tile_atlas |
 |------|-----------------|
+| 0.9  | 0.5.0           |
 | 0.8  | 0.4.0           |
 | 0.7  | 0.3.0           |
 | 0.6  | 0.2.0           |
