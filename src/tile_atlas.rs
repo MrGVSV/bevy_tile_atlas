@@ -2,10 +2,10 @@
 
 use crate::TextureStore;
 use bevy_asset::Handle;
-use bevy_math::Vec2;
+use bevy_math::{Rect, Vec2};
 use bevy_render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy_render::texture::{Image, TextureFormatPixelInfo};
-use bevy_sprite::{Rect, TextureAtlas, TextureAtlasBuilderError};
+use bevy_sprite::{TextureAtlas, TextureAtlasBuilderError};
 use bevy_utils::HashMap;
 use thiserror::Error;
 

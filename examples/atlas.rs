@@ -34,11 +34,11 @@ enum AppState {
 }
 
 /// The resultant atlas (or `None` if not yet generated)
-#[derive(Default)]
+#[derive(Resource, Default)]
 struct MyAtlas(Option<TextureAtlas>);
 
 /// Contains the list of handles we need to be loaded before we can build the atlas
-#[derive(Default)]
+#[derive(Resource, Default)]
 struct TileHandles(Vec<HandleUntyped>);
 
 fn load_tiles(
@@ -98,14 +98,14 @@ fn display_atlas(
 	mut commands: Commands,
 	mut atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-	commands.spawn_bundle(Camera2dBundle::default());
+	commands.spawn(Camera2dBundle::default());
 
 	let atlas = atlas_res.0.take().unwrap();
 	let handle = atlas.texture.clone();
 	let atlas_handle = atlases.add(atlas);
 
 	// Display the third tile (Wall)
-	commands.spawn_bundle(SpriteSheetBundle {
+	commands.spawn(SpriteSheetBundle {
 		transform: Transform {
 			translation: Vec3::new(0.0, 48.0, 0.0),
 			..Default::default()
@@ -116,7 +116,7 @@ fn display_atlas(
 	});
 
 	// Display the whole tileset
-	commands.spawn_bundle(SpriteBundle {
+	commands.spawn(SpriteBundle {
 		texture: handle,
 		..Default::default()
 	});
