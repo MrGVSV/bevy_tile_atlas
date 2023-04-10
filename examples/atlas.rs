@@ -19,15 +19,16 @@ fn main() {
 		.add_plugins(DefaultPlugins)
 		.init_resource::<TileHandles>()
 		.init_resource::<MyAtlas>()
-		.add_state(AppState::LoadTileset)
-		.add_system_set(SystemSet::on_enter(AppState::LoadTileset).with_system(load_tiles))
-		.add_system_set(SystemSet::on_update(AppState::CreateTileset).with_system(create_atlas))
-		.add_system_set(SystemSet::on_enter(AppState::DisplayTileset).with_system(display_atlas))
+		.add_state::<AppState>()
+		.add_system(load_tiles.in_schedule(OnEnter(AppState::LoadTileset)))
+		.add_system(display_atlas.in_schedule(OnEnter(AppState::DisplayTileset)))
+		.add_system(create_atlas.in_set(OnUpdate(AppState::CreateTileset)))
 		.run();
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, States, Default)]
 enum AppState {
+	#[default]
 	LoadTileset,
 	CreateTileset,
 	DisplayTileset,
@@ -42,8 +43,8 @@ struct MyAtlas(Option<TextureAtlas>);
 struct TileHandles(Vec<HandleUntyped>);
 
 fn load_tiles(
+	mut commands: Commands,
 	mut handles: ResMut<TileHandles>,
-	mut state: ResMut<State<AppState>>,
 	asset_server: Res<AssetServer>,
 ) {
 	let tiles = vec![
@@ -54,17 +55,17 @@ fn load_tiles(
 		asset_server.load_untyped("tiles/grass.png"),
 	];
 	handles.0 = tiles;
-	state.overwrite_set(AppState::CreateTileset).unwrap();
+	commands.insert_resource(NextState(Some(AppState::CreateTileset)));
 }
 
 fn create_atlas(
+	mut commands: Commands,
 	mut atlas: ResMut<MyAtlas>,
 	mut textures: ResMut<Assets<Image>>,
-	mut state: ResMut<State<AppState>>,
 	handles: Res<TileHandles>,
 	asset_server: Res<AssetServer>,
 ) {
-	let ids = handles.0.iter().map(|h| h.id);
+	let ids = handles.0.iter().map(|h| h.id());
 	if LoadState::Loaded != asset_server.get_group_load_state(ids) {
 		// All textures must first be loaded
 		return;
@@ -90,7 +91,7 @@ fn create_atlas(
 
 	atlas.0 = builder.finish(&mut textures).ok();
 
-	state.set(AppState::DisplayTileset).unwrap();
+	commands.insert_resource(NextState(Some(AppState::DisplayTileset)));
 }
 
 fn display_atlas(
