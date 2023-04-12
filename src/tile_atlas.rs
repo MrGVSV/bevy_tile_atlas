@@ -249,15 +249,14 @@ impl TileAtlasBuilder {
 			}
 		}
 
-		Ok(TextureAtlas {
-			size: Vec2::new(
-				atlas_texture.texture_descriptor.size.width as f32,
-				atlas_texture.texture_descriptor.size.height as f32,
-			),
-			texture: textures.add(atlas_texture),
-			textures: texture_rects,
-			texture_handles: Some(texture_handles),
-		})
+		Ok(TextureAtlas::from_grid(
+			textures.add(atlas_texture),
+			*tile_size,
+			self.get_max_columns(),
+			total_rows,
+			None,
+			None,
+		))
 	}
 
 	fn copy_converted_texture(
