@@ -20,9 +20,9 @@ fn main() {
 		.init_resource::<TileHandles>()
 		.init_resource::<MyAtlas>()
 		.add_state::<AppState>()
-		.add_system(load_tiles.in_schedule(OnEnter(AppState::LoadTileset)))
-		.add_system(display_atlas.in_schedule(OnEnter(AppState::DisplayTileset)))
-		.add_system(create_atlas.in_set(OnUpdate(AppState::CreateTileset)))
+		.add_systems(OnEnter(AppState::LoadTileset), load_tiles)
+		.add_systems(OnEnter(AppState::DisplayTileset), display_atlas)
+		.add_systems(Update, create_atlas.run_if(in_state(AppState::CreateTileset)))
 		.run();
 }
 
