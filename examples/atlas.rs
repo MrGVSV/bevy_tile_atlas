@@ -10,8 +10,7 @@
 //! This example uses a state system to manage the loading of the various tiles
 //! in order to be easier to follow, but other methods may be used of course
 
-use bevy::asset::LoadState;
-use bevy::prelude::*;
+use bevy::{asset::LoadState, prelude::*};
 use bevy_tile_atlas::TileAtlasBuilder;
 
 fn main() {
@@ -22,7 +21,10 @@ fn main() {
 		.add_state::<AppState>()
 		.add_systems(OnEnter(AppState::LoadTileset), load_tiles)
 		.add_systems(OnEnter(AppState::DisplayTileset), display_atlas)
-		.add_systems(Update, create_atlas.run_if(in_state(AppState::CreateTileset)))
+		.add_systems(
+			Update,
+			create_atlas.run_if(in_state(AppState::CreateTileset)),
+		)
 		.run();
 }
 
@@ -40,7 +42,7 @@ struct MyAtlas(Option<TextureAtlas>);
 
 /// Contains the list of handles we need to be loaded before we can build the atlas
 #[derive(Resource, Default)]
-struct TileHandles(Vec<HandleUntyped>);
+struct TileHandles(Vec<Handle<Image>>);
 
 fn load_tiles(
 	mut commands: Commands,
@@ -48,11 +50,11 @@ fn load_tiles(
 	asset_server: Res<AssetServer>,
 ) {
 	let tiles = vec![
-		asset_server.load_untyped("tiles/grass.png"),
-		asset_server.load_untyped("tiles/dirt.png"),
-		asset_server.load_untyped("tiles/wall.png"),
-		asset_server.load_untyped("tiles/dirt.png"),
-		asset_server.load_untyped("tiles/grass.png"),
+		asset_server.load("tiles/grass.png"),
+		asset_server.load("tiles/dirt.png"),
+		asset_server.load("tiles/wall.png"),
+		asset_server.load("tiles/dirt.png"),
+		asset_server.load("tiles/grass.png"),
 	];
 	handles.0 = tiles;
 	commands.insert_resource(NextState(Some(AppState::CreateTileset)));
@@ -66,17 +68,18 @@ fn create_atlas(
 	asset_server: Res<AssetServer>,
 ) {
 	let ids = handles.0.iter().map(|h| h.id());
-	if LoadState::Loaded != asset_server.get_group_load_state(ids) {
-		// All textures must first be loaded
-		return;
+	for id in ids.into_iter() {
+		if LoadState::Loaded != asset_server.load_state(id) {
+			return;
+		}
 	}
 
 	let mut builder = TileAtlasBuilder::default();
 	let mut is_first = true;
 
 	for handle in &handles.0 {
-		if let Some(texture) = textures.get(&handle.typed_weak()) {
-			if let Ok(index) = builder.add_texture(handle.clone().typed::<Image>(), texture) {
+		if let Some(texture) = textures.get(handle.id()) {
+			if let Ok(index) = builder.add_texture(handle.clone(), texture) {
 				println!("Added texture at index: {}", index);
 			}
 		}
