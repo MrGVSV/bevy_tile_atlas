@@ -4,10 +4,11 @@ use crate::TextureStore;
 use bevy_asset::Handle;
 use bevy_math::{Rect, Vec2};
 use bevy_render::{
+	render_asset::RenderAssetUsages,
 	render_resource::{Extent3d, TextureDimension, TextureFormat},
 	texture::{Image, TextureFormatPixelInfo},
 };
-use bevy_sprite::{TextureAtlas, TextureAtlasBuilderError};
+use bevy_sprite::{TextureAtlasBuilderError, TextureAtlasLayout};
 use bevy_utils::HashMap;
 use thiserror::Error;
 
@@ -142,6 +143,9 @@ impl TileAtlasBuilder {
 	/// Gets the current number of added textures
 	pub fn len(&self) -> usize { self.handles.len() }
 
+	/// Check if there are no added textures
+	pub fn is_empty(&self) -> bool { self.handles.is_empty() }
+
 	/// Adds a texture to be copied to the texture atlas.
 	///
 	/// If a size has not been set, the size of the given texture will be the designated
@@ -195,7 +199,7 @@ impl TileAtlasBuilder {
 	pub fn finish<TStore: TextureStore>(
 		self,
 		textures: &mut TStore,
-	) -> Result<TextureAtlas, TileAtlasBuilderError> {
+	) -> Result<(Handle<Image>, TextureAtlasLayout), TileAtlasBuilderError> {
 		let total = self.handles.len();
 		if total == 0usize {
 			return Err(TileAtlasBuilderError::EmptyAtlas);
@@ -214,6 +218,7 @@ impl TileAtlasBuilder {
 			TextureDimension::D2,
 			&[0, 0, 0, 0],
 			self.format,
+			RenderAssetUsages::default(),
 		);
 
 		let mut row_idx = 0usize;
@@ -250,14 +255,15 @@ impl TileAtlasBuilder {
 			}
 		}
 
-		Ok(TextureAtlas::from_grid(
-			textures.add(atlas_texture),
+		let layout = TextureAtlasLayout::from_grid(
 			*tile_size,
 			self.get_max_columns(),
 			total_rows,
 			None,
 			None,
-		))
+		);
+		let image = textures.add(atlas_texture);
+		Ok((image, layout))
 	}
 
 	fn copy_converted_texture(
