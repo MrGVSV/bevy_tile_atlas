@@ -10,8 +10,7 @@
 //! This example uses a state system to manage the loading of the various tiles
 //! in order to be easier to follow, but other methods may be used of course
 
-use bevy::asset::LoadState;
-use bevy::prelude::*;
+use bevy::{asset::LoadState, prelude::*};
 use bevy_tile_atlas::TileAtlasBuilder;
 
 fn main() {
@@ -19,28 +18,31 @@ fn main() {
 		.add_plugins(DefaultPlugins)
 		.init_resource::<TileHandles>()
 		.init_resource::<MyAtlas>()
-		.add_state::<AppState>()
-		.add_systems(OnEnter(AppState::LoadTileset), load_tiles)
-		.add_systems(OnEnter(AppState::DisplayTileset), display_atlas)
-		.add_systems(Update, create_atlas.run_if(in_state(AppState::CreateTileset)))
+		.init_state::<AppState>()
+		.add_systems(OnEnter(AppState::Load), load_tiles)
+		.add_systems(OnEnter(AppState::Display), display_atlas)
+		.add_systems(
+			Update,
+			create_atlas.run_if(in_state(AppState::Create)),
+		)
 		.run();
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, States, Default)]
 enum AppState {
 	#[default]
-	LoadTileset,
-	CreateTileset,
-	DisplayTileset,
+	Load,
+	Create,
+	Display
 }
 
 /// The resultant atlas (or `None` if not yet generated)
 #[derive(Resource, Default)]
-struct MyAtlas(Option<TextureAtlas>);
+struct MyAtlas(Option<(Handle<Image>, TextureAtlasLayout)>);
 
 /// Contains the list of handles we need to be loaded before we can build the atlas
 #[derive(Resource, Default)]
-struct TileHandles(Vec<HandleUntyped>);
+struct TileHandles(Vec<Handle<Image>>);
 
 fn load_tiles(
 	mut commands: Commands,
@@ -48,14 +50,14 @@ fn load_tiles(
 	asset_server: Res<AssetServer>,
 ) {
 	let tiles = vec![
-		asset_server.load_untyped("tiles/grass.png"),
-		asset_server.load_untyped("tiles/dirt.png"),
-		asset_server.load_untyped("tiles/wall.png"),
-		asset_server.load_untyped("tiles/dirt.png"),
-		asset_server.load_untyped("tiles/grass.png"),
+		asset_server.load("tiles/grass.png"),
+		asset_server.load("tiles/dirt.png"),
+		asset_server.load("tiles/wall.png"),
+		asset_server.load("tiles/dirt.png"),
+		asset_server.load("tiles/grass.png"),
 	];
 	handles.0 = tiles;
-	commands.insert_resource(NextState(Some(AppState::CreateTileset)));
+	commands.insert_resource(NextState(Some(AppState::Create)));
 }
 
 fn create_atlas(
@@ -66,17 +68,18 @@ fn create_atlas(
 	asset_server: Res<AssetServer>,
 ) {
 	let ids = handles.0.iter().map(|h| h.id());
-	if LoadState::Loaded != asset_server.get_group_load_state(ids) {
-		// All textures must first be loaded
-		return;
+	for id in ids.into_iter() {
+		if LoadState::Loaded != asset_server.load_state(id) {
+			return;
+		}
 	}
 
 	let mut builder = TileAtlasBuilder::default();
 	let mut is_first = true;
 
 	for handle in &handles.0 {
-		if let Some(texture) = textures.get(&handle.typed_weak()) {
-			if let Ok(index) = builder.add_texture(handle.clone().typed::<Image>(), texture) {
+		if let Some(texture) = textures.get(handle.id()) {
+			if let Ok(index) = builder.add_texture(handle.clone(), texture) {
 				println!("Added texture at index: {}", index);
 			}
 		}
@@ -91,19 +94,18 @@ fn create_atlas(
 
 	atlas.0 = builder.finish(&mut textures).ok();
 
-	commands.insert_resource(NextState(Some(AppState::DisplayTileset)));
+	commands.insert_resource(NextState(Some(AppState::Display)));
 }
 
 fn display_atlas(
 	mut atlas_res: ResMut<MyAtlas>,
 	mut commands: Commands,
-	mut atlases: ResMut<Assets<TextureAtlas>>,
+	mut atlases: ResMut<Assets<TextureAtlasLayout>>,
 ) {
 	commands.spawn(Camera2dBundle::default());
 
-	let atlas = atlas_res.0.take().unwrap();
-	let handle = atlas.texture.clone();
-	let atlas_handle = atlases.add(atlas);
+	let (texture, atlas_layout) = atlas_res.0.take().unwrap();
+	let atlas_handle = atlases.add(atlas_layout);
 
 	// Display the third tile (Wall)
 	commands.spawn(SpriteSheetBundle {
@@ -111,14 +113,18 @@ fn display_atlas(
 			translation: Vec3::new(0.0, 48.0, 0.0),
 			..Default::default()
 		},
-		sprite: TextureAtlasSprite::new(2),
-		texture_atlas: atlas_handle,
+		sprite: Sprite::default(),
+		atlas: TextureAtlas {
+			layout: atlas_handle,
+			index: 2,
+		},
+		texture: texture.clone(),
 		..Default::default()
 	});
 
 	// Display the whole tileset
 	commands.spawn(SpriteBundle {
-		texture: handle,
+		texture,
 		..Default::default()
 	});
 

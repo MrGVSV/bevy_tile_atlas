@@ -3,15 +3,21 @@
 use crate::TextureStore;
 use bevy_asset::Handle;
 use bevy_math::{Rect, Vec2};
-use bevy_render::render_resource::{Extent3d, TextureDimension, TextureFormat};
-use bevy_render::texture::{Image, TextureFormatPixelInfo};
-use bevy_sprite::{TextureAtlas, TextureAtlasBuilderError};
+use bevy_render::{
+	render_asset::RenderAssetUsages,
+	render_resource::{Extent3d, TextureDimension, TextureFormat},
+	texture::{Image, TextureFormatPixelInfo},
+};
+use bevy_sprite::{TextureAtlasBuilderError, TextureAtlasLayout};
 use bevy_utils::HashMap;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum TileAtlasBuilderError {
-	#[error("the given tile does not match the current tile size (expected {expected:?}, found {found:?})")]
+	#[error(
+		"the given tile does not match the current tile size (expected {expected:?}, found \
+		 {found:?})"
+	)]
 	InvalidTileSize { expected: Vec2, found: Vec2 },
 	#[error("the atlas does not contain any tiles")]
 	EmptyAtlas,
@@ -127,21 +133,18 @@ impl TileAtlasBuilder {
 	}
 
 	/// Gets the current tile size (if any)
-	pub fn get_tile_size(&self) -> Option<Vec2> {
-		self.tile_size
-	}
+	pub fn get_tile_size(&self) -> Option<Vec2> { self.tile_size }
 
 	/// Gets the current maximum number of columns
 	///
 	/// If the columns property was not set, this will equal the number of added textures
-	pub fn get_max_columns(&self) -> usize {
-		self.max_columns.unwrap_or(self.handles.len())
-	}
+	pub fn get_max_columns(&self) -> usize { self.max_columns.unwrap_or(self.handles.len()) }
 
 	/// Gets the current number of added textures
-	pub fn len(&self) -> usize {
-		self.handles.len()
-	}
+	pub fn len(&self) -> usize { self.handles.len() }
+
+	/// Check if there are no added textures
+	pub fn is_empty(&self) -> bool { self.handles.is_empty() }
 
 	/// Adds a texture to be copied to the texture atlas.
 	///
@@ -173,8 +176,10 @@ impl TileAtlasBuilder {
 				);
 				#[cfg(feature = "debug")]
 				bevy_log::warn!(
-					"The given texture does not fit into specified tile size (expected: {:?}, found: {:?}). Skipping...",
-					expected, found,
+					"The given texture does not fit into specified tile size (expected: {:?}, \
+					 found: {:?}). Skipping...",
+					expected,
+					found,
 				);
 				return Err(TileAtlasBuilderError::InvalidTileSize { expected, found });
 			}
@@ -194,7 +199,7 @@ impl TileAtlasBuilder {
 	pub fn finish<TStore: TextureStore>(
 		self,
 		textures: &mut TStore,
-	) -> Result<TextureAtlas, TileAtlasBuilderError> {
+	) -> Result<(Handle<Image>, TextureAtlasLayout), TileAtlasBuilderError> {
 		let total = self.handles.len();
 		if total == 0usize {
 			return Err(TileAtlasBuilderError::EmptyAtlas);
@@ -213,6 +218,7 @@ impl TileAtlasBuilder {
 			TextureDimension::D2,
 			&[0, 0, 0, 0],
 			self.format,
+			RenderAssetUsages::default(),
 		);
 
 		let mut row_idx = 0usize;
@@ -220,7 +226,7 @@ impl TileAtlasBuilder {
 		let mut texture_handles = HashMap::default();
 		let mut texture_rects = Vec::with_capacity(total);
 		for (index, handle) in self.handles.iter().enumerate() {
-			let texture = textures.get(handle).unwrap();
+			let texture = textures.get(handle.clone()).unwrap();
 			let x = (col_idx as f32) * tile_size.x;
 			let y = (row_idx as f32) * tile_size.y;
 			let min = Vec2::new(x, y);
@@ -249,14 +255,15 @@ impl TileAtlasBuilder {
 			}
 		}
 
-		Ok(TextureAtlas::from_grid(
-			textures.add(atlas_texture),
+		let layout = TextureAtlasLayout::from_grid(
 			*tile_size,
 			self.get_max_columns(),
 			total_rows,
 			None,
 			None,
-		))
+		);
+		let image = textures.add(atlas_texture);
+		Ok((image, layout))
 	}
 
 	fn copy_converted_texture(

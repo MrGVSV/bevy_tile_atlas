@@ -1,6 +1,6 @@
 //! Defines the `TextureStore` trait which is used by `TileAtlasBuilder` to manage its textures
 
-use bevy_asset::{Assets, Handle, HandleId};
+use bevy_asset::{Assets, Handle};
 use bevy_ecs::system::{ResMut, Resource};
 use bevy_render::texture::Image;
 use std::ops::{Deref, DerefMut};
@@ -14,25 +14,17 @@ pub trait TextureStore {
 	/// Add a texture to the store
 	fn add(&mut self, asset: Image) -> Handle<Image>;
 	/// Get a texture from the store
-	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Image>;
+	fn get<H: Into<Handle<Image>>>(&self, handle: H) -> Option<&Image>;
 }
 
 impl TextureStore for Assets<Image> {
-	fn add(&mut self, asset: Image) -> Handle<Image> {
-		self.add(asset)
-	}
+	fn add(&mut self, asset: Image) -> Handle<Image> { self.add(asset) }
 
-	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Image> {
-		self.get(&Handle::weak(handle.into()))
-	}
+	fn get<H: Into<Handle<Image>>>(&self, handle: H) -> Option<&Image> { self.get(handle.into()) }
 }
 
 impl<'w, T: TextureStore + Resource> TextureStore for ResMut<'w, T> {
-	fn add(&mut self, asset: Image) -> Handle<Image> {
-		self.deref_mut().add(asset)
-	}
+	fn add(&mut self, asset: Image) -> Handle<Image> { self.deref_mut().add(asset) }
 
-	fn get<H: Into<HandleId>>(&self, handle: H) -> Option<&Image> {
-		self.deref().get(handle)
-	}
+	fn get<H: Into<Handle<Image>>>(&self, handle: H) -> Option<&Image> { self.deref().get(handle) }
 }
